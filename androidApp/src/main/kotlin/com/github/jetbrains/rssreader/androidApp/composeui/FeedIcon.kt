@@ -1,4 +1,4 @@
-package com.github.jetbrains.rssreader.androidApp.ui.compose
+package com.github.jetbrains.rssreader.androidApp.composeui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,16 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.github.jetbrains.rssreader.androidApp.R
 import com.github.jetbrains.rssreader.core.entity.Feed
-import com.google.accompanist.coil.rememberCoilPainter
 import java.util.*
 
 @Composable
@@ -58,9 +55,8 @@ fun FeedIcon(
             )
             feed?.imageUrl?.let { url ->
                 Image(
+                    painter = rememberAsyncImagePainter(url),
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit,
-                    painter = rememberCoilPainter(url),
                     contentDescription = null
                 )
             }
@@ -72,7 +68,7 @@ private fun Feed.shortName(): String =
     title
         .replace(" ", "")
         .take(2)
-        .toUpperCase(Locale.getDefault())
+        .uppercase(Locale.getDefault())
 
 @Composable
 fun EditIcon(
@@ -86,26 +82,9 @@ fun EditIcon(
             .clickable(onClick = onClick)
     ) {
         Image(
-            modifier = Modifier.align(Alignment.Center),
             imageVector = ImageVector.vectorResource(R.drawable.ic_edit),
-            colorFilter = ColorFilter.tint(MaterialTheme.colors.onSecondary),
+            modifier = Modifier.align(Alignment.Center),
             contentDescription = null
         )
-    }
-}
-
-@Preview
-@Composable
-private fun FeedIconPreview() {
-    AppTheme {
-        FeedIcon(feed = PreviewData.feed)
-    }
-}
-
-@Preview
-@Composable
-private fun FeedIconSelectedPreview() {
-    AppTheme {
-        FeedIcon(feed = PreviewData.feed, true)
     }
 }

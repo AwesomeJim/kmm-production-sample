@@ -1,22 +1,15 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${findProperty("version.kotlin")}")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:${findProperty("version.kotlin")}")
-        classpath("com.android.tools.build:gradle:${findProperty("version.androidGradlePlugin")}")
-    }
+plugins {
+    alias(libs.plugins.android.application).apply(false)
+    alias(libs.plugins.android.library).apply(false)
+    alias(libs.plugins.kotlinx.serialization).apply(false)
+    alias(libs.plugins.kotlin.multiplatform).apply(false)
+    alias(libs.plugins.kotlin.android).apply(false)
+    alias(libs.plugins.kotlin.parcelize).apply(false)
+    alias(libs.plugins.dependencyUpdates).apply(false)
 }
 
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    // ./gradlew dependencyUpdates
+    // Report: build/dependencyUpdates/report.txt
+    apply(plugin = "com.github.ben-manes.versions")
 }

@@ -1,4 +1,4 @@
-package com.github.jetbrains.rssreader.androidApp.ui.compose
+package com.github.jetbrains.rssreader.androidApp.composeui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -33,7 +33,7 @@ fun AddFeedDialog(
             .padding(16.dp)
     ) {
         val input = remember { mutableStateOf(TextFieldValue()) }
-        Text(text = stringResource(id = R.string.rss_feed_url))
+        Text(text = stringResource(R.string.rss_feed_url))
         TextField(
             maxLines = 3,
             value = input.value,
@@ -48,7 +48,7 @@ fun AddFeedDialog(
                 )
             }
         ) {
-            Text(text = stringResource(id = R.string.add))
+            Text(text = stringResource(R.string.add))
         }
     }
 }
@@ -73,7 +73,7 @@ fun DeleteFeedDialog(
             modifier = Modifier.align(Alignment.End),
             onClick = { onDelete() }
         ) {
-            Text(text = stringResource(id = R.string.remove))
+            Text(text = stringResource(R.string.remove))
         }
     }
 }

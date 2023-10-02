@@ -1,81 +1,79 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
 plugins {
-    kotlin("multiplatform")
-    id("com.android.library")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
-    android()
-
-    val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
-        if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
-            ::iosArm64
-        else
-            ::iosX64
-
-    iosTarget("ios") {
-        binaries {
-            framework {
-                baseName = "RssReader"
+    targetHierarchy.default()
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
             }
+        }
+    }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = "RssReader"
         }
     }
 
     sourceSets {
+        targetHierarchy.default()
         val commonMain by getting {
             dependencies {
                 //Network
-                implementation("io.ktor:ktor-client-core:${findProperty("version.ktor")}")
-                implementation("io.ktor:ktor-client-logging:${findProperty("version.ktor")}")
+                implementation(libs.ktor.core)
+                implementation(libs.ktor.logging)
                 //Coroutines
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${findProperty("version.kotlinx.coroutines")}")
+                implementation(libs.kotlinx.coroutines.core)
                 //Logger
-                implementation("io.github.aakira:napier:1.5.0")
+                implementation(libs.napier)
                 //JSON
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${findProperty("version.kotlinx.serialization")}")
+                implementation(libs.kotlinx.serialization.json)
                 //Key-Value storage
-                implementation("com.russhwolf:multiplatform-settings:0.7.7")
+                implementation(libs.multiplatform.settings)
+                // DI
+                api(libs.koin.core)
             }
         }
 
         val androidMain by getting {
             dependencies {
                 //Network
-                implementation("io.ktor:ktor-client-okhttp:${findProperty("version.ktor")}")
+                implementation(libs.ktor.client.okhttp)
             }
         }
 
         val iosMain by getting {
             dependencies {
                 //Network
-                implementation("io.ktor:ktor-client-ios:${findProperty("version.ktor")}")
+                implementation(libs.ktor.client.ios)
             }
         }
     }
 }
 
 android {
+    namespace = "com.github.jetbrains.rssreader"
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
-        targetSdk = (findProperty("android.targetSdk") as String).toInt()
     }
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    dependencies {
+        coreLibraryDesugaring(libs.desugar.jdk.libs)
+    }
 }
-
-val packForXcode by tasks.creating(Sync::class) {
-    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
-    val framework = kotlin.targets.getByName<KotlinNativeTarget>("ios").binaries.getFramework(mode)
-    val targetDir = File(buildDir, "xcode-frameworks")
-
-    group = "build"
-    dependsOn(framework.linkTask)
-    inputs.property("mode", mode)
-
-    from({ framework.outputDirectory })
-    into(targetDir)
-}
-tasks.getByName("build").dependsOn(packForXcode)

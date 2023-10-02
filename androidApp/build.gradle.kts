@@ -1,14 +1,11 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("kotlin-parcelize")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.android)
 }
 
-val composeVersion = findProperty("version.compose") as String
-
 android {
+    namespace = "com.github.jetbrains.rssreader.androidApp"
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
@@ -16,14 +13,14 @@ android {
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
 
         applicationId = "com.github.jetbrains.rssreader.androidApp"
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     signingConfigs {
         create("release") {
             storeFile = file("./key/key.jks")
-            gradleLocalProperties(rootDir).apply {
+            com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).apply {
                 storePassword = getProperty("storePwd")
                 keyAlias = getProperty("keyAlias")
                 keyPassword = getProperty("keyPwd")
@@ -43,7 +40,7 @@ android {
                 file("proguard-rules.pro")
             )
         }
-        getByName("release") {
+        release {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
 
@@ -55,10 +52,12 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
+        buildConfig = true
     }
-
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.androidx.compose.compiler.get()
+    }
     compileOptions {
         // Flag to enable support for the new language APIs
         isCoreLibraryDesugaringEnabled = true
@@ -67,38 +66,29 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
-        useIR = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = composeVersion
+    dependencies {
+        implementation(project(":shared"))
+        //desugar utils
+        coreLibraryDesugaring(libs.desugar.jdk.libs)
+        //Compose
+        implementation(libs.androidx.compose.ui)
+        implementation(libs.androidx.compose.ui.tooling)
+        implementation(libs.androidx.compose.foundation)
+        implementation(libs.androidx.compose.material)
+        //Compose Utils
+        implementation(libs.coil.compose)
+        implementation(libs.activity.compose)
+        implementation(libs.accompanist.swiperefresh)
+        //Coroutines
+        implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.coroutines.android)
+        //DI
+        implementation(libs.koin.core)
+        implementation(libs.koin.android)
+        //Navigation
+        implementation(libs.voyager.navigator)
+        //WorkManager
+        implementation(libs.work.runtime.ktx)
     }
-}
-
-dependencies {
-    implementation(project(":shared"))
-    //desugar utils
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
-    //Compose
-    implementation("androidx.compose.ui:ui:$composeVersion")
-    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
-    implementation("androidx.compose.foundation:foundation:$composeVersion")
-    implementation("androidx.compose.material:material:$composeVersion")
-    //Compose Utils
-    implementation("com.google.accompanist:accompanist-coil:0.14.0")
-    implementation("com.google.accompanist:accompanist-insets:0.14.0")
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.14.0")
-    //UI
-    implementation("androidx.appcompat:appcompat:1.3.0")
-    //Coroutines
-    val coroutinesVersion = findProperty("version.kotlinx.coroutines")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
-    //DI
-    implementation("io.insert-koin:koin-core:3.1.2")
-    implementation("io.insert-koin:koin-android:3.1.2")
-    //Navigation
-    implementation("com.github.terrakok:modo:0.6.1")
-    implementation("com.github.terrakok:modo-render-android-fm:0.6.1")
-    //WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.5.0")
 }
